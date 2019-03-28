@@ -1,0 +1,519 @@
+%!PS-Adobe-1.0
+%%DocumentFonts: Helvetica
+%%Pages: 1
+%%HiResBoundingBox: 36.00 222.70 576.00 554.30
+%%EndComments
+/censhow   %draw a centered string
+ { moveto               % move to proper spot
+   dup stringwidth pop  % get x length of string
+   -2 div               % Proper left start
+   yoff rmoveto         % Move left that much and down half font height
+   show newpath } def   % show the string
+
+/rcenshow  %draw a centered string
+ { rmoveto              % move to proper spot
+   dup stringwidth pop  % get x length of string
+   -2 div               % Proper left start
+   yoff rmoveto         % Move left that much and down half font height
+   show newpath } def   % show the string
+/setfontsize     % set font to desired size and compute centering yoff
+ { /Helvetica findfont
+   exch scalefont
+   setfont         % Font size set ...
+
+   0 0 moveto      % Get vertical centering offset
+   (Xg) true charpath
+   flattenpath pathbbox
+   /ascent exch def pop -1 mul /descent exch def pop
+   newpath
+   descent ascent sub 2 div /yoff exch def } def
+
+% Next two lines for debugging only.
+/str 20 string def
+/pnum {str cvs print (  ) print} def
+/drawline      % draw a line from (x2,y2) to (x1,y1)
+ { moveto lineto stroke } def
+
+/rect          % outline a rectangle 
+ { /y2 exch def /x2 exch def /y1 exch def /x1 exch def
+   x1 y1 moveto
+   x2 y1 lineto
+   x2 y2 lineto
+   x1 y2 lineto
+   closepath } def
+
+/drawrect      % draw outline of a rectanagle
+ { rect stroke } def
+
+/fillrect      % fill in a rectanagle
+ { rect fill } def
+
+/drawarc { arc stroke } def           % draw an arc
+/drawarcn { arcn stroke } def         % draw an arc in the opposite direction
+
+%Fill a counterclockwise or clockwise arc sector, respectively.
+/fillarc { moveto currentpoint 5 2 roll arc closepath fill } def
+/fillarcn { moveto currentpoint 5 2 roll arcn closepath fill } def
+
+/fillpoly { 3 1 roll moveto         % move to first point
+   2 exch 1 exch {pop lineto} for   % line to all other points
+   closepath fill } def
+
+%Color Definitions:
+/white { 1 setgray } def
+/black { 0 setgray } def
+/grey55 { .55 setgray } def
+/grey75 { .75 setgray } def
+/red { 1 0 0 setrgbcolor } def
+/orange { 1 0.65 0 setrgbcolor } def
+/yellow { 1 1 0 setrgbcolor } def
+/green { 0 1 0 setrgbcolor } def
+/cyan { 0 1 1 setrgbcolor } def
+/blue { 0 0 1 setrgbcolor } def
+/purple { 0.63 0.13 0.94 setrgbcolor } def
+/pink { 1 0.75 0.8 setrgbcolor } def
+/lightpink { 1 0.71 0.76 setrgbcolor } def
+/darkgreen { 0 0.5 0 setrgbcolor } def
+/magenta { 1 0 1 setrgbcolor } def
+/bisque { 1 0.89 0.77 setrgbcolor } def
+/lightskyblue { 0.53 0.81 0.98 setrgbcolor } def
+/thistle { 0.85 0.75 0.85 setrgbcolor } def
+/plum { 0.87 0.63 0.87 setrgbcolor } def
+/khaki { 0.94 0.9 0.55 setrgbcolor } def
+/coral { 1 0.5 0.31 setrgbcolor } def
+/turquoise { 0.25 0.88 0.82 setrgbcolor } def
+/mediumpurple { 0.58 0.44 0.86 setrgbcolor } def
+/darkslateblue { 0.28 0.24 0.55 setrgbcolor } def
+/darkkhaki { 0.74 0.72 0.42 setrgbcolor } def
+/lightmediumblue { 0.33 0.33 1.00 setrgbcolor } def
+/saddlebrown { 0.55 0.27 0.07 setrgbcolor } def
+/firebrick { 0.70 0.13 0.13 setrgbcolor } def
+/limegreen { 0.20 0.80 0.20 setrgbcolor } def
+
+%Solid and dashed line definitions:
+/linesolid {[] 0 setdash} def
+/linedashed {[3 3] 0 setdash} def
+
+%%EndProlog
+%%Page: 1 1
+
+black
+linesolid
+1 setlinewidth
+10 setfontsize
+9 setfontsize
+(Interactive graphics example with double buffering.) 306.00 229.70 censhow
+10 setfontsize
+36.00 237.70 576.00 554.30 rect clip newpath
+
+black
+linesolid
+1 setlinewidth
+white
+clippath fill
+
+black
+linesolid
+gsave
+112.29 268.45 moveto
+0.8 0.8 scale
+0 rotate
+(colors) 0 0 rcenshow
+grestore
+grey75
+123.30 261.57 137.07 275.33 fillrect
+grey55
+137.07 261.57 150.83 275.33 fillrect
+white
+150.83 261.57 164.60 275.33 fillrect
+black
+164.60 261.57 178.36 275.33 fillrect
+blue
+178.36 261.57 192.13 275.33 fillrect
+green
+192.13 261.57 205.89 275.33 fillrect
+yellow
+205.89 261.57 219.66 275.33 fillrect
+cyan
+219.66 261.57 233.43 275.33 fillrect
+red
+233.43 261.57 247.19 275.33 fillrect
+darkgreen
+247.19 261.57 260.96 275.33 fillrect
+magenta
+260.96 261.57 274.72 275.33 fillrect
+gsave
+192.13 268.45 moveto
+0.8 0.8 scale
+0 rotate
+(fillrect) 0 0 rcenshow
+grestore
+0.454902 0.839216 0.215686 setrgbcolor
+288.49 261.57 302.25 275.33 fillrect
+0.784314 0.333333 0.105882 setrgbcolor
+302.25 261.57 316.02 275.33 fillrect
+0.847059 0.854902 0.168627 setrgbcolor
+316.02 261.57 329.78 275.33 fillrect
+black
+123.30 261.57 329.78 275.33 drawrect
+gsave
+150.83 294.60 moveto
+0.8 0.8 scale
+0 rotate
+(drawline) 0 0 rcenshow
+grestore
+137.07 286.34 137.07 308.37 drawline
+linedashed
+164.60 286.34 164.60 308.37 drawline
+magenta
+gsave
+205.89 297.36 moveto
+0.8 0.8 scale
+0 rotate
+(drawellipticarc) 0 0 rcenshow
+grestore
+gsave
+233.43 297.36 translate
+0.50 1 scale
+0 0 16.52 90.00 360.00 drawarc
+grestore
+gsave
+280.23 297.36 moveto
+0.8 0.8 scale
+0 rotate
+(fillellipticarc) 0 0 rcenshow
+grestore
+gsave
+302.25 297.36 translate
+0.50 1 scale
+16.52 90.00 360.00 0 0 fillarc
+grestore
+blue
+gsave
+134.31 335.90 moveto
+0.8 0.8 scale
+0 rotate
+(drawarc) 0 0 rcenshow
+grestore
+gsave
+134.31 335.90 translate
+1.00 1 scale
+0 0 13.77 0.00 270.00 drawarc
+grestore
+gsave
+164.60 335.90 translate
+1.00 1 scale
+0 0 13.77 0.00 -180.00 drawarcn
+grestore
+gsave
+194.88 335.90 translate
+1.00 1 scale
+13.77 90.00 0.00 0 0 fillarcn
+grestore
+gsave
+225.17 335.90 translate
+1.00 1 scale
+13.77 0.00 360.00 0 0 fillarc
+grestore
+black
+gsave
+225.17 335.90 moveto
+0.8 0.8 scale
+0 rotate
+(fillarc) 0 0 rcenshow
+grestore
+blue
+gsave
+255.45 335.90 translate
+1.00 1 scale
+13.77 90.00 270.00 0 0 fillarc
+grestore
+gsave
+285.73 335.90 translate
+1.00 1 scale
+13.77 90.00 360.00 0 0 fillarc
+grestore
+gsave
+316.02 335.90 translate
+1.00 1 scale
+13.77 90.00 120.00 0 0 fillarc
+grestore
+109.54 363.43 164.60 418.49 drawrect
+green
+137.07 390.96 164.60 418.49 drawrect
+109.54 363.43 137.07 390.96 drawrect
+red
+109.54 363.43 164.60 418.49 drawline
+109.54 418.49 164.60 363.43 drawline
+0.000000 0.000000 0.000000 setrgbcolor
+14 setfontsize
+gsave
+137.07 363.43 moveto
+0.8 0.8 scale
+0 rotate
+(0 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+gsave
+164.60 390.96 moveto
+0.8 0.8 scale
+90 rotate
+(90 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+gsave
+137.07 418.49 moveto
+0.8 0.8 scale
+180 rotate
+(180 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+gsave
+109.54 390.96 moveto
+0.8 0.8 scale
+270 rotate
+(270 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+gsave
+137.07 390.96 moveto
+0.8 0.8 scale
+45 rotate
+(45 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+gsave
+137.07 390.96 moveto
+0.8 0.8 scale
+135 rotate
+(135 degrees) 0 0 rcenshow
+grestore
+14 setfontsize
+10 setfontsize
+red
+
+236.18 385.45
+203.14 385.45
+219.66 363.43
+3 fillpoly
+
+302.25 363.43
+288.49 385.45
+260.96 385.45
+274.72 363.43
+4 fillpoly
+black
+gsave
+219.66 377.19 moveto
+0.8 0.8 scale
+0 rotate
+(fillpoly1) 0 0 rcenshow
+grestore
+gsave
+281.60 374.44 moveto
+0.8 0.8 scale
+0 rotate
+(fillpoly2) 0 0 rcenshow
+grestore
+darkgreen
+linesolid
+gsave
+219.66 421.24 moveto
+0.8 0.8 scale
+0 rotate
+(drawrect) 0 0 rcenshow
+grestore
+178.36 404.73 260.96 437.76 drawrect
+black
+gsave
+384.84 506.59 moveto
+0.8 0.8 scale
+0 rotate
+(Butt ends, opaque) 0 0 rcenshow
+grestore
+gsave
+137.07 501.08 moveto
+0.8 0.8 scale
+0 rotate
+(Thin line (width 1)) 0 0 rcenshow
+grestore
+109.54 506.59 164.60 506.59 drawline
+gsave
+219.66 501.08 moveto
+0.8 0.8 scale
+0 rotate
+(Width 3 Line) 0 0 rcenshow
+grestore
+3 setlinewidth
+192.13 506.59 247.19 506.59 drawline
+gsave
+302.25 501.08 moveto
+0.8 0.8 scale
+0 rotate
+(Width 6 Line) 0 0 rcenshow
+grestore
+6 setlinewidth
+274.72 506.59 329.78 506.59 drawline
+linesolid
+0.000000 1.000000 0.000000 setrgbcolor
+gsave
+384.84 520.35 moveto
+0.8 0.8 scale
+0 rotate
+(Round ends, 33% transparent) 0 0 rcenshow
+grestore
+gsave
+137.07 514.85 moveto
+0.8 0.8 scale
+0 rotate
+(Thin line (width 1)) 0 0 rcenshow
+grestore
+1 setlinewidth
+109.54 520.35 164.60 520.35 drawline
+gsave
+219.66 514.85 moveto
+0.8 0.8 scale
+0 rotate
+(Width 3 Line) 0 0 rcenshow
+grestore
+3 setlinewidth
+192.13 520.35 247.19 520.35 drawline
+gsave
+302.25 514.85 moveto
+0.8 0.8 scale
+0 rotate
+(Width 6 Line) 0 0 rcenshow
+grestore
+6 setlinewidth
+274.72 520.35 329.78 520.35 drawline
+linedashed
+1.000000 0.000000 0.000000 setrgbcolor
+gsave
+384.84 534.12 moveto
+0.8 0.8 scale
+0 rotate
+(Butt ends, 67% transparent) 0 0 rcenshow
+grestore
+gsave
+137.07 528.61 moveto
+0.8 0.8 scale
+0 rotate
+(Thin line (width 1)) 0 0 rcenshow
+grestore
+1 setlinewidth
+109.54 534.12 164.60 534.12 drawline
+gsave
+219.66 528.61 moveto
+0.8 0.8 scale
+0 rotate
+(Width 3 Line) 0 0 rcenshow
+grestore
+3 setlinewidth
+192.13 534.12 247.19 534.12 drawline
+gsave
+302.25 528.61 moveto
+0.8 0.8 scale
+0 rotate
+(Width 6 Line) 0 0 rcenshow
+grestore
+6 setlinewidth
+274.72 534.12 329.78 534.12 drawline
+red
+357.31 363.43 371.08 473.55 fillrect
+blue
+371.08 363.43 384.84 473.55 fillrect
+0.000000 1.000000 0.000000 setrgbcolor
+364.20 335.90 377.96 418.49 fillrect
+black
+10 setfontsize
+gsave
+343.55 390.96 moveto
+0.8 0.8 scale
+90 rotate
+(Partially transparent polys) 0 0 rcenshow
+grestore
+10 setfontsize
+1.000000 0.392157 1.000000 setrgbcolor
+
+316.02 357.92
+292.62 377.19
+192.13 377.19
+210.02 357.92
+4 fillpoly
+0.392157 0.392157 1.000000 setrgbcolor
+
+322.90 390.96
+212.78 390.96
+233.43 368.94
+3 fillpoly
+1 setlinewidth
+red
+linesolid
+39.77 550.53 73.74 516.57 drawrect
+gsave
+56.75 541.85 moveto
+0.8 0.8 scale
+0 rotate
+(Screen coord) 0 0 rcenshow
+grestore
+gsave
+56.75 529.40 moveto
+0.8 0.8 scale
+0 rotate
+(Fixed loc) 0 0 rcenshow
+grestore
+black
+linedashed
+8 setfontsize
+gsave
+146.24 457.03 moveto
+0.8 0.8 scale
+0 rotate
+(8 Point Text) 0 0 rcenshow
+grestore
+109.54 448.77 182.95 465.29 drawrect
+12 setfontsize
+gsave
+219.66 457.03 moveto
+0.8 0.8 scale
+0 rotate
+(12 Point Text) 0 0 rcenshow
+grestore
+182.95 448.77 256.37 465.29 drawrect
+15 setfontsize
+gsave
+293.08 457.03 moveto
+0.8 0.8 scale
+0 rotate
+(18 Point Text) 0 0 rcenshow
+grestore
+256.37 448.77 329.78 465.29 drawrect
+24 setfontsize
+gsave
+164.60 473.55 moveto
+0.8 0.8 scale
+0 rotate
+(24 Point Text) 0 0 rcenshow
+grestore
+109.54 465.29 219.66 481.81 drawrect
+32 setfontsize
+gsave
+274.72 473.55 moveto
+0.8 0.8 scale
+0 rotate
+(32 Point Text) 0 0 rcenshow
+grestore
+219.66 465.29 329.78 481.81 drawrect
+green
+linesolid
+10 setfontsize
+black
+gsave
+95.77 315.25 moveto
+0.8 0.8 scale
+0 rotate
+(draw_surface) 0 0 rcenshow
+grestore
+showpage
+
+%%Trailer

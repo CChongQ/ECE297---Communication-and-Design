@@ -1,0 +1,282 @@
+#include "newmap.h"
+#include "m1.h"
+#include "m2.h"
+#include "m3.h"
+#include "Helper.h"
+#include "Draw_functions.h" 
+#include "Information_bar.h" 
+#include "StreetsDatabaseAPI.h"
+#include "OSMDatabaseAPI.h" 
+#include "graphics.h"
+#include "Global.h"
+#include "graphics_types.h"
+#include "X11/keysymdef.h"
+#include <map>
+#include <tuple>
+#include <iostream>
+#include <algorithm>
+#include <math.h>
+#include <unordered_map>
+#include <vector>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/register/point.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <limits>
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+#include <string>
+#include <set>
+#include <cassert>
+#include "Nodes.h"
+extern newmap *mymap; //make mymap a global variable to access mymap in different files
+
+
+double compute_path_travel_time(const std::vector<unsigned>& path, 
+                                const double turn_penalty) {
+    
+    double travel_time = 0;
+    
+    
+    if( path.size() == 0){
+        return 0;
+    }
+    
+    unsigned pre_street = mymap->streetSegmentUOM[path[0]].streetID;
+    
+    for (unsigned it = 0; it < path.size(); it++){
+        //determine turns first
+        unsigned this_street = mymap->streetSegmentUOM[path[it]].streetID;
+        if(this_street != pre_street){
+            /*this street segment and previous street segment are
+            not in the same street*/
+            travel_time = travel_time + mymap->travel_time[path[it]] + turn_penalty;  
+        }
+        else{
+            /*They are in the same street*/
+             travel_time = travel_time + mymap->travel_time[path[it]];
+        }   
+        pre_street = this_street;
+    }
+    
+    return travel_time;    
+}
+
+std::vector<unsigned> find_path_between_intersections(const unsigned intersect_id_start, 
+                                                      const unsigned intersect_id_end,
+                                                      const double turn_penalty) {
+    
+    
+    
+    unordered_map<unsigned, Nodes>intersection_Info_UOM;  //get Node info by intersection ID
+    
+    unordered_map<double, int>timeUOM;       //get intersection ID by traveling time
+    std::priority_queue<double, std::vector<double>, std::greater<double> > timePQ;  //record traveling time from beginning to current point
+    
+    LatLon end_point = getIntersectionPosition(intersect_id_end);
+    timePQ.push(0);
+    timeUOM[0] = intersect_id_start;
+    intersection_Info_UOM[intersect_id_start].travel_time_from_start_points = 0;
+    intersection_Info_UOM[intersect_id_start].visited = true;
+
+    //REFERENCE: https://www.cnblogs.com/cielosun/p/5654595.html
+    while (!timePQ.empty()) {
+
+        double min_value = timePQ.top(); 
+        unsigned current_intersectionID = timeUOM[min_value];
+
+        //If target point found,return the value 
+        if (current_intersectionID == intersect_id_end){
+            break;
+        }
+
+
+
+        timePQ.pop();
+        
+        intersection_Info_UOM[current_intersectionID].visited = true;
+
+        //If the id has been replaced,do not check the previous one
+        if (current_intersectionID != getNumberOfIntersections()) {
+            std::vector<unsigned> adjacent_ss_IDs = find_intersection_street_segments(current_intersectionID);
+            
+            for (unsigned i = 0; i < adjacent_ss_IDs.size(); i++) {
+
+                bool valid = true;
+                unsigned adjacent_intersection_IDs;
+                StreetSegmentInfo ss_info = mymap->streetSegmentUOM[adjacent_ss_IDs[i]];
+                
+                if (ss_info.oneWay) {
+                    if (current_intersectionID == ss_info.from)
+                        adjacent_intersection_IDs = ss_info.to;
+                    else valid = false;
+                } else {
+                    if (current_intersectionID == ss_info.from)
+                        adjacent_intersection_IDs = ss_info.to;
+                    else adjacent_intersection_IDs = ss_info.from;
+                }
+
+                if (valid && (!intersection_Info_UOM[adjacent_intersection_IDs].visited)) {
+
+                    double temp_time = intersection_Info_UOM[current_intersectionID].travel_time_from_start_points + find_street_segment_travel_time(adjacent_ss_IDs[i]);
+
+                    unsigned path_ = intersection_Info_UOM[current_intersectionID].path_to_the_point;
+
+                    if (current_intersectionID != intersect_id_start && (ss_info.streetID != mymap->streetSegmentUOM[path_].streetID))
+                        temp_time += turn_penalty;
+
+                    if (intersection_Info_UOM[adjacent_intersection_IDs].travel_time_from_start_points > temp_time) {
+                        //Provide each intersection with scores,1/30 is the coefficient after many exercises to balance the run time and accuracy 
+                        LatLon current_position = mymap->intersectionUOM[adjacent_intersection_IDs].intersectionPosition1;
+                       
+                        double dis_to_end = find_distance_between_two_points(current_position, end_point);
+                        double temp_value = temp_time + dis_to_end / 30;
+
+                        timePQ.push(temp_value);
+                        
+                        timeUOM[temp_value] = adjacent_intersection_IDs;
+                        intersection_Info_UOM[adjacent_intersection_IDs].parents = current_intersectionID;
+                        intersection_Info_UOM[adjacent_intersection_IDs].path_to_the_point = adjacent_ss_IDs[i];
+                        intersection_Info_UOM[adjacent_intersection_IDs].travel_time_from_start_points = temp_time;
+
+                    }
+
+                }
+            }
+        }
+    }
+
+
+    //if not found return an empty vector
+    if (intersection_Info_UOM[intersect_id_end].parents == getNumberOfIntersections()) {
+        std::vector<unsigned>empty;
+        return empty;
+    } else {
+        std::vector<unsigned> path_to_end;
+        unsigned temp_id = intersect_id_end;
+
+        while (temp_id != intersect_id_start) {
+            path_to_end.insert(path_to_end.begin(), intersection_Info_UOM[temp_id].path_to_the_point);
+            temp_id = intersection_Info_UOM[temp_id].parents;
+        }
+        return path_to_end;
+
+    }
+    
+    
+    
+    
+    
+}
+
+
+extern std::unordered_map<string, vector<unsigned>> closest_intersection_of_interest_unordered_map;
+
+std::vector<unsigned> find_path_to_point_of_interest(const unsigned intersect_id_start, 
+                                               const std::string point_of_interest_name,
+                                               const double turn_penalty) {
+    
+    
+    std::vector<unsigned> clostest_intersections = closest_intersection_of_interest_unordered_map[point_of_interest_name];
+    
+    if (clostest_intersections.empty())
+        return clostest_intersections;
+    
+    unordered_map<unsigned, Nodes>nodes_map;
+    unordered_map<double, int>time_map;
+    std::priority_queue<double, std::vector<double>, std::greater<double> > time_queue;
+    time_queue.push(0);
+    time_map[0] = intersect_id_start;
+    nodes_map[intersect_id_start].travel_time_from_start_points = 0;
+    nodes_map[intersect_id_start].visited = true;
+    unsigned intersect_id_end;
+    
+    
+    while (!time_queue.empty()) {
+        
+        double score_2 = time_queue.top();
+        unsigned id_ = time_map[score_2];
+        
+        if (find(clostest_intersections.begin(), clostest_intersections.end(), id_) != clostest_intersections.end()) {
+            intersect_id_end = id_;
+            break;
+        }
+
+
+        time_queue.pop();
+
+        nodes_map[id_].visited = true;
+
+        
+        if (id_ != getNumberOfIntersections()) {
+            std::vector<unsigned> adj_seg = find_intersection_street_segments(id_);
+            for (unsigned j = 0; j < adj_seg.size(); j++) {
+
+                bool valid_way = true;
+                unsigned adj_inters;
+                StreetSegmentInfo seg_info = /*getStreetSegmentInfo(adj_seg[j]);*/mymap->streetSegmentUOM[adj_seg[j]];
+                if (seg_info.oneWay) {
+                    if (id_ == seg_info.from)
+                        adj_inters = seg_info.to;
+                    else valid_way = false;
+                } else {
+                    if (id_ == seg_info.from)
+                        adj_inters = seg_info.to;
+                    else adj_inters = seg_info.from;
+                }
+
+                if (valid_way && (!nodes_map[adj_inters].visited)) {
+
+                    double temp_time = nodes_map[id_].travel_time_from_start_points + find_street_segment_travel_time(adj_seg[j]);
+
+                    unsigned path_ = nodes_map[id_].path_to_the_point;
+
+                    if (id_ != intersect_id_start && (seg_info.streetID != /*getStreetSegmentInfo(path_).streetID))*/mymap->streetSegmentUOM[path_].streetID))
+                        temp_time += turn_penalty;
+
+                    if (nodes_map[adj_inters].travel_time_from_start_points > temp_time) {
+                       // LatLon current = /*getIntersectionPosition(adj_inters);*/mymap->intersectionUOM[adj_inters].intersectionPosition1;
+                        //because no particular target end point,the score is time to that point
+                        double score_3 = temp_time;
+
+                        time_queue.push(score_3);
+
+                        //time_map[nodes_map[adj_inters].travel_time_from_start_points] = getNumberOfIntersections();
+                        time_map[score_3] = adj_inters;
+                        nodes_map[adj_inters].parents = id_;
+                        nodes_map[adj_inters].path_to_the_point = adj_seg[j];
+                        nodes_map[adj_inters].travel_time_from_start_points = temp_time;
+
+
+
+                    }
+
+                }
+            }
+        }
+        
+
+    }
+
+
+    //if not found return an empty vector
+    if (nodes_map[intersect_id_end].parents == getNumberOfIntersections()) {
+        std::vector<unsigned>empty;
+        return empty;
+    }
+    else if (time_queue.empty()) {
+        std::vector<unsigned>empty;
+        return empty;
+    } else {
+        std::vector<unsigned> path_to_end;
+        unsigned temp_id = intersect_id_end;
+
+        while (temp_id != intersect_id_start) {
+            path_to_end.insert(path_to_end.begin(), nodes_map[temp_id].path_to_the_point);
+            temp_id = nodes_map[temp_id].parents;
+        }
+        return path_to_end;
+
+    }
+    
+}

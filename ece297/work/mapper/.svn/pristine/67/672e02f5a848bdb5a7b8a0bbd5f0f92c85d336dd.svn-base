@@ -1,0 +1,79 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   interface_icon.h
+ * Author: qiuchenh
+ *
+ * Created on March 16, 2018, 11:34 PM
+ */
+#include "graphics.h"
+#include "Global.h"
+#include "graphics_types.h"
+#include <vector>
+
+#ifndef INTERFACE_ICON_H
+#define INTERFACE_ICON_H
+
+void getValues() {
+    //new
+    top_r_x = get_visible_screen().top_right().x; //??
+    bottom_l_y = get_visible_screen().bottom_left().y;
+    screen_width = get_visible_screen().get_width();
+    screen_height = get_visible_screen().get_height();
+    bottom_l_x_left = top_r_x * 0.02;
+    bottom_l_x_right = top_r_x * 0.3;
+    bar_height_bottom = bottom_l_y * 0.05;
+    bar_height_top = bottom_l_y * 0.01;
+    bar_length = top_r_x * 0.25;
+    //old    
+    screen_ratio = screen_height / screen_width;
+    t_bound_box temp0(bottom_l_x_left, bar_height_bottom, bottom_l_x_left + bar_length, bar_height_top);
+    leftsearchBar = temp0;
+
+    t_bound_box temp1(bottom_l_x_right, bar_height_bottom, bottom_l_x_right + bar_length, bar_height_top);
+    rightSearchBar = temp1;
+
+    t_bound_box temp2(bottom_l_x_right + bar_length + 10, bar_height_bottom, bottom_l_x_right + bar_length + 10 + png_size, bar_height_bottom * 0.3);
+    searchIcon = temp2;
+
+    t_bound_box temp3(bottom_l_x_right + bar_length + 20 + png_size, bar_height_bottom, bottom_l_x_right + bar_length + 20 + png_size * 2, bar_height_bottom * 0.3);
+    leftArrow = temp3;
+
+    t_bound_box temp4(bottom_l_x_right + bar_length + 30 + png_size * 2, bar_height_bottom, bottom_l_x_right + bar_length + 30 + png_size * 3, bar_height_bottom * 0.3);
+    rightArrow = temp4;
+
+    t_bound_box temp5(rightArrow.right() + 5, bar_height_bottom, rightArrow.right() + 5 + png_size, bar_height_bottom * 0.3);
+    findPath = temp5;
+
+    t_bound_box temp13(findPath.right() + 5, bar_height_bottom, findPath.right() + 5 + png_size, bar_height_bottom * 0.3);
+    listInter = temp13;
+
+    t_bound_box temp6(top_r_x * 0.96, bar_height_bottom, top_r_x * 0.96 + png_size, bar_height_bottom * 0.3);
+    zoomInButton = temp6;
+
+    t_bound_box temp7(top_r_x * 0.96, zoomInButton.bottom() + png_size + 20, top_r_x * 0.96 + png_size, zoomInButton.bottom() + 20);
+    zoomOutButton = temp7;
+
+    t_bound_box temp8(top_r_x * 0.96, bar_height_bottom * 0.3 + png_size * 2 + 35, top_r_x * 0.965 + png_size, bar_height_bottom * 0.3 + png_size * 3 + 35);
+    questionMark = temp8;
+
+    // t_bound_box temp9(top_r_x * 0.965, bottom_l_y * 0.8,top_r_x * 0.965 + png_size + 5,bottom_l_y * 0.8 + png_size);   
+    // changeMapButton  = temp9;
+    // delete temp9;
+
+    t_bound_box temp10(top_r_x * 0.967, bottom_l_y * 0.6, top_r_x * 0.965 + png_size, bottom_l_y * 0.6 - png_size * 2);
+    POIselect = temp10;
+
+    t_bound_box temp11(top_r_x * 0.967, POIselect.bottom() + png_size * 2 + 20, top_r_x * 0.96 + png_size, POIselect.bottom() + 20);
+    changeMapButton = temp11;
+
+    t_bound_box temp12(top_r_x * 0.967, changeMapButton.bottom() + png_size * 4 + 20, top_r_x * 0.965 + png_size, changeMapButton.bottom() + 20);
+    Details = temp12;
+}
+
+#endif /* INTERFACE_ICON_H */
+

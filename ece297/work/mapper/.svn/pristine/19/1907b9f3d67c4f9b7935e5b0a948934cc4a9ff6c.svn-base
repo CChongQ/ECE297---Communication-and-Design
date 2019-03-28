@@ -1,0 +1,403 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   Draw_functions.h
+ * Author: qiuchenh
+ *
+ * Created on February 26, 2018, 5:14 PM
+ */
+#include "newmap.h"
+#include "m1.h"
+#include "m2.h"
+#include "Helper.h"
+#include "interface_icon.h"
+#include "StreetsDatabaseAPI.h"
+#include "OSMDatabaseAPI.h" 
+#include "graphics.h"
+#include "Global.h"
+
+#ifndef DRAW_FUNCTIONS_H
+#define DRAW_FUNCTIONS_H
+
+
+
+void drawscreen(void) {
+    clearscreen();
+      
+       getValues();     
+         
+        //set value for search bar coordinate variables     
+    if (only_draw_string == true ){     
+        set_coordinate_system(GL_SCREEN);  
+        set_drawing_buffer(ON_SCREEN);
+        drawSearchBar();
+        draw_string();
+        set_coordinate_system(GL_WORLD);
+        copy_off_screen_buffer_to_screen();
+        set_drawing_buffer(OFF_SCREEN);
+
+        only_draw_string = false;
+    } else {
+
+        //draw ss
+        draw_streetSegment();
+        //draw features
+        draw_features();
+        //draw POIs
+        draw_POIs();
+
+        set_coordinate_system(GL_SCREEN);
+        //draw info bar 
+        drawSearchBar();
+        
+        if ( searIconClick == true) {
+            std::cout << "HHHHHHHHHHHHHHHHHH" <<std::endl;
+            highlight_street_intersections();
+           // draw_highlight_intersections() ;  
+           // draw_highlight_intersections();    
+            searIconClick = false;
+        }
+        
+        checkBarOpen();
+        
+        // highlight the intersection user clicked
+        if (user_click_map == true) {
+           // hightlight_intersection(inter_id); // get id first
+            setcolor(t_color(243, 113, 34));          
+            fillarc(click_screen.x, click_screen.y, 10, 90, 360);
+            user_click_map = false;
+        } else {
+            draw_string();
+        }
+        //when user click the "Find" button, highlight related intersections
+        
+
+        set_coordinate_system(GL_WORLD);
+        copy_off_screen_buffer_to_screen();
+    }
+
+}
+
+
+//load icons for each POI and draw them
+
+void draw_POIs() {
+    for (unsigned i = 0; i < POIs.size(); i++) {
+        double x = xcoord(POIs[i].position.lon());
+        double y = ycoord(POIs[i].position.lat());
+        float height = 0.000001;
+        //draw preloaded icons in different zoom level
+        if (LOD_area_test(area * 0.001)) {
+            setcolor(t_color(255, 0, 255));
+            if (POIs[i].type == "theatre") {
+                draw_surface(load_png_from_file("theatre.png"), x, y);
+            } else if (POIs[i].type == "parking") {
+                draw_surface(load_png_from_file("parking.png"), x, y);
+            } else if (POIs[i].type == "bank") {
+                draw_surface(load_png_from_file("bank.png"), x, y);
+            } else if (POIs[i].type == "hospital") {
+                draw_surface(load_png_from_file("hospital.png"), x, y);
+            } else if (POIs[i].type == "pharmacy") {
+                draw_surface(load_png_from_file("pharmacy.png"), x, y);
+            } else if (POIs[i].type == "bus_station") {
+                draw_surface(load_png_from_file("bus_station.png"), x, y);
+            } else if (POIs[i].type == "pub") {
+                draw_surface(load_png_from_file("pub.png"), x, y);
+            } else if (POIs[i].type == "fuel") {
+                draw_surface(load_png_from_file("fuel.png"), x, y);
+            } else if (POIs[i].type == "cinema") {
+                draw_surface(load_png_from_file("cinema.png"), x, y);
+            } else if (POIs[i].type == "fire_station") {
+                draw_surface(load_png_from_file("fire_station.png"), x, y);
+            } else if (POIs[i].type == "subway_entrance") {
+                draw_surface(load_png_from_file("subway_entrance.png"), x, y);
+            }
+//            if (!LOD_area_test(area * 0.0003)) {
+//                setfontsize(8);
+//                setcolor(t_color(139, 131, 120));
+//                drawtext(x, y + height, POIs[i].name);
+//            }
+        }
+        if (LOD_area_test(area * 0.0007)) {
+            if (POIs[i].type == "fast_food") {
+                draw_surface(load_png_from_file("fast_food.png"), x, y);
+            } else if (POIs[i].type == "cafe") {
+                draw_surface(load_png_from_file("cafe.png"), x, y);
+            } else if (POIs[i].type == "restaurant") {
+                draw_surface(load_png_from_file("restaurant.png"), x, y);
+            }
+            if (LOD_area_test(area * 0.0003)) {
+                setfontsize(8);
+                setcolor(t_color(139, 131, 120));
+                drawtext(x, y + height, POIs[i].name);
+            }
+        }
+    }
+}
+bool test = true;
+
+t_point on_poi_icon (float x, float y) {
+    LatLon newpoint (x, y);
+    poi_id = find_closest_point_of_interest(newpoint);
+    
+    //get world coord of closest POI
+    float x2 = xcoord(getPointOfInterestPosition(poi_id).lon());
+    float y2 = ycoord(getPointOfInterestPosition(poi_id).lat());
+    
+    t_point worldCoord(x2, y2);
+    
+    t_point screenCoord = world_to_scrn(worldCoord);
+    
+    return screenCoord;
+}
+
+void act_on_mouse_move(float x, float y) {
+    // function to handle mouse move event, the current mouse position in the current world coordinate
+    // system (as defined in your call to init_world) is returned
+    
+    //std::cout << "mouse hovered" << std::endl;
+
+    t_point screenCoord = on_poi_icon(x, y);
+
+    user_mouse_world.x = x;
+    user_mouse_world.y = y;
+    user_mouse_screen = world_to_scrn(user_mouse_world);    
+    
+    if (abs(screenCoord.x - user_mouse_screen.x) < 0.000001 && abs(screenCoord.y - user_mouse_screen.y) < 0.000001) {
+        std::cout << "entered2" << std::endl;
+    }
+    
+//    user_mouse_world.x = x;
+//    user_mouse_world.y = y;
+//    user_mouse_screen = world_to_scrn(user_mouse_world);
+//    
+//    for (unsigned i = 0; i < poiIcons.size(); i++) {
+//        if (poiIcons[i].intersects(user_mouse_screen)) {
+//            std::cout<< "entered" << std::endl;
+//            break;
+//        }
+//    }  
+    
+//    
+//    
+//    for (unsigned i = 0; i < POIs.size(); i++) {
+//        //double poiX = xcoord(POIs[i].position.lon());
+//        //double poiY = ycoord(POIs[i].position.lat());
+//        t_point temp;
+//        float tempx = POIs[i].position.lon();
+//        float tempy = POIs[i].position.lat();
+//        temp.x = tempx;
+//        temp.y = tempy;
+//        t_point poi = world_to_scrn(temp);
+//        
+//        if ((user_mouse_screen.x < poi.x + 0.00001) && (user_mouse_screen.x > poi.x - 0.00001) && (user_mouse_screen.y < poi.y + 0.00001) && (user_mouse_screen.y > poi.y - 0.00001)) {
+//            
+//            std::cout << "over icon" << std::endl;
+//            drawtext(x, y + 0.000001, POIs[i].type);
+//        }
+//    }
+}
+
+void draw_features() {
+    for (auto it = features.begin(); it != features.end(); ++it) {
+        t_color color = getFeatureColor((*it).type);
+        // check if shape is open ended (stream)
+        auto index = (*it).points.size() - 1;
+        if (((*it).points[0].lat() != (*it).points[index].lat()) && ((*it).points[0].lon() != (*it).points[index].lon())) {
+            if (LOD_area_test(0.05 * area)) {
+                unsigned pointIDprev = 0;
+                for (unsigned pointID = 1; pointID < (*it).points.size(); pointID++) {
+                    setlinewidth(1);
+                    //setcolor(t_color(135,206,250));
+                    setcolor(color.red, color.green, color.blue);
+                    drawline((*it).cartPoints[pointIDprev].x, (*it).cartPoints[pointIDprev].y,
+                            (*it).cartPoints[pointID].x, (*it).cartPoints[pointID].y);
+                    pointIDprev = pointID;
+                }
+            }
+        } else {
+            //t_point *points;
+
+            if (getFeatureType((*it).type) == "Building") {
+                //setcolor(t_color(152,251,152));
+                if (LOD_area_test(area * 0.005)) {
+                    setcolor(color.red, color.green, color.blue);
+                    fillpoly((*it).cartPoints, (*it).points.size());
+                    if (test) {
+                        test = false;
+                        // std::cout << (*it).points.size() << std::endl;
+                        //   for (unsigned i = 0; i < (*it).points.size(); ++i) {
+                        //       std::cout << (*it).cartPoints[i].x << ", " << (*it).cartPoints[i].y << std::endl;
+                        //   }
+                    }
+                }
+
+            } else if (getFeatureType((*it).type) == "Greenspace" || getFeatureType((*it).type) == "Park"
+                    || getFeatureType((*it).type) == "Golfcourse"
+                    || getFeatureType((*it).type) == "River"
+                    || getFeatureType((*it).type) == "Beach"
+                    || getFeatureType((*it).type) == "Shoreline"
+                    || getFeatureType((*it).type) == "Island") {
+                if (LOD_area_test(area * 5)) {
+                    setcolor(color.red, color.green, color.blue);
+                    fillpoly((*it).cartPoints, (*it).points.size());
+                }
+            } else {
+                setcolor(color.red, color.green, color.blue);
+                fillpoly((*it).cartPoints, (*it).points.size());
+
+            }
+        }
+    }
+}
+
+
+//Use tag from OSMDatabaseAPI to classify streets
+//then draw them in different color and size
+
+void draw_streetSegment() {
+
+    for (unsigned i = 0; i < ss.size(); i++) {
+
+
+        for (unsigned pointID = 0; pointID < ss[i].points.size() - 1; pointID++) {
+            bool unknown = true;
+            //----------draw street segment initialization--------------//
+            double fromx = xcoord(ss[i].points[pointID].lon());
+            double fromy = ycoord(ss[i].points[pointID].lat());
+            double tox = xcoord(ss[i].points[pointID + 1].lon());
+            double toy = ycoord(ss[i].points[pointID + 1].lat());
+
+            t_point pt1;
+            t_point pt2;
+            pt1.x = fromx;
+            pt1.y = fromy;
+            pt2.x = tox;
+            pt2.y = toy;
+
+            //--------------draw names initialization--------------------//
+            setfontsize(10);
+            double x, y, degreeAngle;
+            x = tox - fromx;
+            y = toy - fromy;
+
+            if (ss[i].name != "<unknown>") {
+                degreeAngle = atan(y / x) * 180 / PI;
+
+                unknown = false;
+            }
+            //--------------draw oneway initialization--------------------//
+            double degreeAngleOneWay = atan2(y, x) * 180 / PI;
+            //----------------draw (zoom implemented)------------------------//
+            //mymap->osmidToindex[mymap->ssidtoOSMID[i]]//osmWay index
+            //create a pointer point to OSMWays
+            //get OSMWay index by street segment index
+            const OSMWay* test = getWayByIndex(mymap->osmidToindex[mymap->ssidtoOSMID[i]]);
+            for (unsigned k = 0; k < getTagCount(test); k++) {
+                
+                std::string key, value;
+                std::tie(key, value) = getTagPair(test, k);
+                if (key == "highway") {
+                    if (value == "motorway" || value == "trunk" || value == "motorway_link" || value == "trunk_link" || value == "primary" || value == "primary_link") {
+                        if (LOD_area_test(area * 5)) { //zoomed in area compared to total area
+                            
+                            if (8 * 0.000001 / (get_visible_world().area()) <= 2) {
+                                setlinewidth(8 * 0.000001 / (get_visible_world().area()));
+                                setcolor(t_color(255, 255, 107));
+                                drawline(fromx, fromy, tox, toy);
+                            } else if (8 * 0.000001 / (get_visible_world().area()) <= 110) {
+                                setlinewidth(8 * 0.0000001 / (get_visible_world().area()));
+                                setcolor(t_color(255, 255, 107));
+                                drawline(fromx, fromy, tox, toy);
+                            } else if (8 * 0.000001 / (get_visible_world().area()) <= 314.18) {
+                                setlinewidth(8 * 0.00000007 / (get_visible_world().area()));
+                                setcolor(t_color(255, 255, 107));
+                                drawline(fromx, fromy, tox, toy);
+                            } else if (8 * 0.000001 / (get_visible_world().area()) > 314.18) {
+                                setlinewidth(16);
+                                setcolor(t_color(255, 255, 107));
+                                drawline(fromx, fromy, tox, toy);
+                            }
+                        }
+                        drawSS(unknown, degreeAngle, degreeAngleOneWay, pt1, pt2, area * 0.1, i);
+                    } else if (value == "secondary" || value == "secondary_link") { //sub-highways
+                        if (LOD_area_test(area * 0.5)) {
+                            if (1.5 * 0.000001 / (get_visible_world().area()) <= 10) {
+                                setlinewidth(1.5 * 0.000001 / (get_visible_world().area()));
+                                setcolor(t_color(255, 255, 178));
+                                drawline(fromx, fromy, tox, toy);
+                            } else if (1.5 * 0.000001 / (get_visible_world().area()) > 10) {
+                                setlinewidth(10);
+                                setcolor(t_color(255, 255, 178));
+                                drawline(fromx, fromy, tox, toy);
+                            }
+                        }
+                        drawSS(unknown, degreeAngle, degreeAngleOneWay, pt1, pt2, area * 0.1, i);
+                    } else if (value == "tertiary" || value == "tertiary_link" || value == "unclassified" || value == "residential" || value == "service") { //white roads
+                        if (LOD_area_test(area * 0.05)) {
+
+                            if (1 * 0.000001 / (get_visible_world().area()) <= 10) {
+                                setlinewidth(1 * 0.000001 / (get_visible_world().area()));
+                                setcolor(t_color(255, 255, 255));
+                                drawline(fromx, fromy, tox, toy);
+                            } else if (1 * 0.000001 / (get_visible_world().area()) > 10) {
+                                setlinewidth(10);
+                                setcolor(t_color(255, 255, 255));
+                                drawline(fromx, fromy, tox, toy);
+                            }
+                        }
+                        drawSS(unknown, degreeAngle, degreeAngleOneWay, pt1, pt2, area * 0.1, i);
+                    } else if (value == "footway" || value == "bridleway" || value == "path" || value == "steps") {
+                        if (LOD_area_test(area * 0.05)) {
+                        }
+
+                        if (1 * 0.000001 / (get_visible_world().area()) <= 6) {
+                            setlinewidth(1 * 0.000001 / (get_visible_world().area()));
+                            setcolor(t_color(117, 117, 117));
+                            drawline(fromx, fromy, tox, toy);
+                        } else if (1 * 0.000001 / (get_visible_world().area()) > 6) {
+                            setlinewidth(6);
+                            setcolor(t_color(117, 117, 117));
+                            drawline(fromx, fromy, tox, toy);
+                        }
+                    }
+                    drawSS(unknown, degreeAngle, degreeAngleOneWay, pt1, pt2, area * 0.1, i);
+                }
+            }
+        }
+    }
+
+
+}
+
+//use boundbox to display names of street & arrows for one-way street
+
+void drawSS(bool unknown, double degreeAngle, double degreeAngleOneWay, t_point& pt1, t_point& pt2, double zoom, unsigned i) {
+    t_point text_pos((pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2);
+    if (!unknown) {
+        setcolor(t_color(0, 0, 0, 170));
+
+        //  t_point text_pos((pt1.x+pt2.x)/2, (pt1.y+pt2.y)/2);
+        t_bound_box bound(pt1, pt2);
+
+        settextrotation(degreeAngle);
+
+        drawtext(text_pos.x, text_pos.y, ss[i].name, abs(pt1.x - pt2.x), abs(pt1.y - pt2.y));
+
+        settextrotation(0);
+    }
+
+    if ((mymap->streetSegmentUOM[i]).oneWay) {
+        setcolor(t_color(0, 0, 0, 60));
+        settextrotation(degreeAngleOneWay);
+        drawtext(text_pos.x, text_pos.y, "->", abs(pt1.x - pt2.x), abs(pt1.y - pt2.y));
+        settextrotation(0);
+    }
+}
+
+#endif /* DRAW_FUNCTIONS_H */
+

@@ -1,0 +1,272 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   Global.h
+ * Author: chosoo1
+ *
+ * Created on February 21, 2018, 12:56 PM
+ */
+
+#ifndef GLOBAL_H
+#define GLOBAL_H
+
+#include "m1.h"
+#include "newmap.h"
+#include "m2.h"
+#include <map>
+#include <tuple>
+#include <iostream>
+#include <algorithm>
+#include <math.h>
+#include <unordered_map>
+#include <vector>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/register/point.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <limits>
+
+
+//-----from newmap------//
+extern newmap *mymap; //make mymap a global variable to access mymap in different files
+
+//-----from m2--------//
+/*************Function prototypes*************/
+void draw_streetSegment();
+void change_map(void (*drawscreen_ptr) (void));
+void delete_map(); //clear variables and contents from current map
+void draw_features();
+void draw_POIs();
+void drawSS(bool unknown, double degreeAngle, double degreeAngleOneWay, t_point& pt1, t_point& pt2, double zoom, unsigned i);
+void drawSearchBar();
+void drawscreen(void);
+void hightlight_intersection(unsigned inter_id);
+void highlight_street_intersections();
+void draw_highlight_intersections();
+t_point coordinate_convert_inter(unsigned inter_id_intersection);
+void Zoom_in_area();
+std::string getFeatureType(FeatureType type);
+t_point get_world_point(unsigned id);
+void act_on_keyboard(char c, int keysym);
+t_color getFeatureColor(FeatureType type);
+void act_on_mouse_click(float x, float y, t_event_buttonPressed event);
+void act_on_mouse_move(float x, float y);
+void draw_string();
+
+// unit conversion
+float xcoord(double loncoord);
+float ycoord(double latcoord);
+float x_to_lon(float x);
+float y_to_lat(float y);
+void getValues();
+
+
+
+/************************** Global variables **************************/
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+static bool line_entering_demo = false;
+extern newmap *mymap;
+std::string mapName;
+t_bound_box initial_coords;
+std::vector <std::string> pois;
+double average_lat; //globally used for unit conversions
+static std::vector<t_point> click_pts; // Stores the position
+/*used to know which area was clicked, and what variable input string needs to go into
+coordinate information of screen*/
+double click_point;
+double left;
+double bottom;
+double right;
+double top;
+double area;
+unsigned inter_id; // intersection id of the closest intersection with a given point
+POIIndex poi_id;
+std::vector<unsigned> inter_id_twoStreet; //intersection id(s) of two streets
+std::string mapTitle;
+bool changedMap = false;
+t_point for_search_zoom;
+/************Position information************/
+t_point on_poi_icon (float x, float y);
+
+//points where user clicked on, used for check 
+t_point user_clicked_world;
+t_point user_clicked_screen;
+//points where the user's mouse is
+t_point user_mouse_world;
+t_point user_mouse_screen;
+//position of the nearest intersection found on map, in screen coordinate
+t_point click_screen;
+t_point temp_zoom;
+//position of the nearest poi found on map, in screen coordinate
+t_point click_screen_poi;
+//position of a specific intersection on map, in screen coordinate
+t_point inter_point_screen;
+
+/******size information about information bar in screen coordinate******/
+float bottom_l_y; //bottom left y
+float top_r_x; // top right x
+float screen_width;
+float screen_height;
+float screen_ratio;
+//new
+float bottom_l_x_left;
+float bottom_l_x_right;
+float bar_height_bottom;
+float bar_height_top;
+float bar_length;
+
+float zoomWidth = 0.0001;
+
+float png_size = 35;
+
+/***Enable variables to indicate that what will be print on screen***/
+bool draw_enable;
+bool user_type = false;
+bool user_click_map;
+bool user_enter_string_twice = false;
+bool draw_inter_streets = false;
+bool only_draw_string = false;
+//which search bar was clicked
+bool inS1 = false;
+bool inS2 = false;
+bool special = false;
+//which tabs need to be opened
+bool layer_opened = false;
+bool changeMap_opened = false;
+bool details_opened = false;
+
+/*******User input strings*******/
+std::vector<char> inputString_s1;
+std::vector<char> inputString_s2;
+std::vector<char> inputString_map;
+std::string outputString_s1;
+std::string outputString_s2;
+std::string outputString_map;
+
+/**************** data struct **********************/
+struct ssInfo {
+    std::vector <LatLon> points;
+    std::string name;
+};
+
+struct POIInfo {
+    std::string name;
+    std::string type;
+    LatLon position;
+};
+
+struct FeatureInfo {
+    std::string name;
+    FeatureType type;
+    std::vector <LatLon> points;
+    t_point* cartPoints;
+    double area;
+};
+
+struct compareArea {
+
+    bool operator()(const struct FeatureInfo & lhs, const struct FeatureInfo & rhs) {
+        return (lhs.area > rhs.area);
+    }
+};
+struct interIcon{
+    float left;
+    float bottom;
+    float right;
+    float top;
+};
+
+struct twoInterID {
+    unsigned interOne;
+    unsigned interTwo;
+    std::string POI;
+    bool twoInput = false;
+    t_point interOneW;
+    t_point interTwoW;
+    int which_is_POI = 0;
+
+    void reset() {
+        interOne = 0;
+        interTwo = 0;
+        twoInput = false;
+        interOneW.x = 0;
+        interOneW.y = 0;
+        interTwoW.x = 0;
+        interTwoW.y = 0;
+        which_is_POI = 0;
+        POI.clear();
+    }
+    
+};
+
+std::vector<ssInfo> ss;
+std::vector<POIInfo> POIs;
+std::set<struct FeatureInfo, compareArea> features;
+
+twoInterID foundInterID;
+/*****************************Milestone 3***************************/
+
+/****Function prototype ********/
+void checkBarOpen();
+void drawHightlightPath();
+void resetColor(unsigned id);
+void for_highlight_ZOOM();
+void checkPOIInput();
+void drawHighlight_POI_path();
+/******Icons*****/
+t_bound_box searchIcon;
+t_bound_box leftArrow;
+t_bound_box rightArrow;
+t_bound_box listInter;
+t_bound_box zoomInButton;
+t_bound_box zoomOutButton;
+t_bound_box questionMark;
+t_bound_box leftsearchBar;
+t_bound_box rightSearchBar;
+
+t_bound_box POIselect;
+t_bound_box changeMapButton;
+t_bound_box Details;
+t_bound_box layerTab;
+t_bound_box changeMapTab;
+t_bound_box detailsTab;
+t_bound_box findPath;
+t_bound_box opened_layerTab;
+t_bound_box opened_changeMapTab;
+t_bound_box opened_detailsTab;
+
+t_bound_box changetoPOI;
+t_bound_box changeToPOI_text;
+t_bound_box changeToInter;
+std::vector<t_bound_box> poiIcons;
+
+std::vector<std::string> inputIntersections;
+std::vector<unsigned> foundPath;
+std::vector<unsigned> foundPath_POI;
+/****Enable different windows****/
+bool inter_to_POI = false;
+bool interIconClick = false;
+bool searIconClick=false;
+bool disappear_text_one = false;
+bool disappear_text_two = false;
+bool disappear_POI = false;
+bool inPOI = false;
+
+bool inter_icon_open = false;
+
+bool highlightColor = false;
+
+/*****Variables******/
+t_point for_highlight_zoom;
+t_point fromP;
+t_point toP;
+std::vector<char> inputString_POI;
+std::string outputString_POI;
+
+
+
+#endif /* GLOBAL_H */

@@ -1,0 +1,32 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   Nodes.cpp
+ * Author: qinzhen4
+ * 
+ * Created on March 16, 2018, 10:39 PM
+ */
+
+#include "Nodes.h"
+#include "StreetsDatabaseAPI.h"
+#include "m2.h"
+#include "m1.h"
+
+
+Nodes::Nodes(){
+    travel_time_from_start_points=std::numeric_limits<float>::max();
+    visited=false;
+    parents=getNumberOfIntersections();
+}
+
+Nodes::Nodes(const Nodes& orig) {
+}
+
+Nodes::~Nodes() {
+}
+
+

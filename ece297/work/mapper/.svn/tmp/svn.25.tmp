@@ -1,0 +1,796 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   Information_bar.h
+ * Author: qiuchenh
+ *
+ * Created on February 26, 2018, 5:24 PM
+ */
+
+#ifndef INFORMATION_BAR_H
+#define INFORMATION_BAR_H
+
+#include "newmap.h"
+#include "m1.h"
+#include "m2.h"
+#include "m3.h"
+#include "Helper.h"
+#include "interface_icon.h"
+#include "StreetsDatabaseAPI.h"
+#include "OSMDatabaseAPI.h" 
+#include "graphics.h"
+#include "Global.h"
+#include "graphics_types.h"
+#include "X11/keysymdef.h"
+
+// draw a static search at the bottom of screen
+
+void drawSearchBar() {
+
+    // search search bars on top
+    setcolor(RED);
+
+    if (inter_to_POI == false) {
+        //  std::cout << "Change to Inter" << std::endl;
+        draw_surface(load_png_from_file("poi-switch-button.png"), changetoPOI.left(), changetoPOI.top());
+        setcolor(WHITE);
+        fillrect(leftsearchBar.left(), leftsearchBar.bottom(), leftsearchBar.right(), leftsearchBar.top()); //left
+        fillrect(rightSearchBar.left(), rightSearchBar.bottom(), rightSearchBar.right(), rightSearchBar.top()); //right
+        setcolor(t_color(201, 198, 196));
+        setfontsize(14);
+        if (disappear_text_one == false) drawtext(bottom_l_x_left + bar_length / 2, bar_height_bottom * 0.55, "Street One ");
+        if (disappear_text_two == false) drawtext(bottom_l_x_right + bar_length / 2, bar_height_bottom * 0.55, "Street Two ");
+
+    } else {
+        std::cout << "Change to POI" << std::endl;
+        draw_surface(load_png_from_file("intersection-switch-button.png"), changeToInter.left(), changeToInter.top());
+        setcolor(WHITE);
+        fillrect(changeToPOI_text.left(), changeToPOI_text.bottom(), changeToPOI_text.right(), changeToPOI_text.top()); //left      
+        setcolor(t_color(201, 198, 196));
+        setfontsize(14);
+        if (disappear_POI == false) drawtext(bottom_l_x_left + bar_length / 2, bar_height_bottom * 0.55, "Point of Intersest ");
+    }
+
+
+
+    draw_surface(load_png_from_file("search_icon.png"), searchIcon.left(), searchIcon.top());
+
+    draw_surface(load_png_from_file("arrow_left.png"), leftArrow.left(), leftArrow.top());
+
+    draw_surface(load_png_from_file("arrow_right.png"), rightArrow.left(), rightArrow.top());
+    // middle
+    draw_surface(load_png_from_file("findpath.png"), findPath.left(), findPath.top());
+
+    draw_surface(load_png_from_file("list_icon.png"), listInter.left(), listInter.top());
+    //right side    
+    draw_surface(load_png_from_file("zoom_in.png"), zoomInButton.left(), zoomInButton.top());
+
+    draw_surface(load_png_from_file("zoom_out.png"), zoomOutButton.left(), zoomOutButton.top());
+
+    draw_surface(load_png_from_file("question_mark.png"), questionMark.left(), questionMark.top());
+
+    //draw details
+    if (!details_opened) {
+        draw_surface(load_png_from_file("details-tab.png"),
+                detailsTab.left(),
+                detailsTab.top());
+    } else if (details_opened) {
+        draw_surface(load_png_from_file("details-tab.png"),
+                opened_detailsTab.left(),
+                opened_detailsTab.top());
+        setcolor(67, 68, 69);
+        fillrect(opened_detailsTab.right(),
+                bottom_l_y * 0.99,
+                top_r_x * 0.99,
+                bottom_l_y * 0.99 - png_size * 5.4286);
+    }
+
+    //draw changemap    
+    if (!changeMap_opened) {
+        draw_surface(load_png_from_file("change-map.png"),
+                changeMapTab.left(),
+                changeMapTab.top());
+    } else if (changeMap_opened) {
+        draw_surface(load_png_from_file("change-map.png"),
+                opened_changeMapTab.left(),
+                opened_changeMapTab.top());
+        setcolor(98, 100, 103);
+        fillrect(top_r_x * 0.01 + png_size, //top_r_x * 0.99 - 70 * 19 - png_size * 0.2 * 21,
+                bottom_l_y * 0.98 - abs(detailsTab.bottom() - detailsTab.top()),
+                top_r_x * 0.99,
+                bottom_l_y * 0.98 - abs(detailsTab.bottom() - detailsTab.top()) - png_size * 3.343);
+
+        for (int i = 0; i < 19; i++) {
+            print_changeMap_icons(i, mapNames[i]);
+        }
+    }
+
+    //draw layers
+    if (!layer_opened) {
+        draw_surface(load_png_from_file("layers.png"),
+                layerTab.left(),
+                layerTab.top());
+    } else if (layer_opened) {
+        draw_surface(load_png_from_file("layers.png"),
+                opened_layerTab.left(),
+                opened_layerTab.top());
+        setcolor(135, 138, 141);
+        fillrect(top_r_x * 0.99 - png_size * 6 - 0.02 * 8,
+                bottom_l_y * 0.97 - abs(detailsTab.bottom() - detailsTab.top()) - abs(changeMapTab.bottom() - changeMapTab.top()),
+                top_r_x * 0.99,
+                bottom_l_y * 0.97 - abs(detailsTab.bottom() - detailsTab.top()) - abs(changeMapTab.bottom() - changeMapTab.top()) - png_size * 3.343);
+    }
+}
+
+void print_changeMap_icons(int i, std::string name) {
+    const char *map_name = name.c_str();
+    draw_surface(load_png_from_file(map_name),
+            opened_changeMapTab.right() + png_size * i * 2 + changeMap_icon_gap * (i + 1),
+            changeMap_icon_top_left_y);
+}
+
+void draw_string() {
+    setcolor(BLACK);
+    setfontsize(14);
+    if (inter_to_POI == true) {
+        if (!outputString_POI.empty()) {
+            drawtext(bottom_l_x_left + bar_length / 2, bar_height_bottom * 0.55, outputString_POI);
+        }
+    } else {
+        if (!outputString_s1.empty()) {
+            drawtext(bottom_l_x_left + bar_length / 2, bar_height_bottom * 0.55, outputString_s1);
+        }
+        if (!outputString_s2.empty()) {
+            drawtext(bottom_l_x_right + bar_length / 2, bar_height_bottom * 0.55, outputString_s2);
+        }
+    }
+
+    /*if (!outputString_map.empty()) {
+          drawtext(length_of_bar * 0.2, map_t_y + (map_b_y - map_t_y) / 2, outputString_map);
+      }    */
+
+}
+
+//This function will be called when user press any botton at mouse
+
+void act_on_mouse_click(float x, float y, t_event_buttonPressed event) {
+    if (event.button == 3) {
+        set_visible_world(initial_coords);
+    } else if (event.button == 1) {
+        user_clicked_world.x = x;
+        user_clicked_world.y = y;
+        user_clicked_screen = world_to_scrn(user_clicked_world);
+        //click on info area  
+        set_keypress_input(true);
+        if ((leftsearchBar.intersects(user_clicked_screen)) == true && inter_to_POI == false) {
+            // user clicked on Street One search box
+            inS1 = true;
+            inS2 = false;
+            disappear_text_one = true;
+            searIconClick = false;
+            help_pressed = false;
+        }//user clicked on street2 search bar
+        else if (changetoPOI.intersects(user_clicked_screen.x, user_clicked_screen.y) == true && inter_to_POI == false) {
+            inter_to_POI = true;
+            help_pressed = false;
+        } else if (changeToInter.intersects(user_clicked_screen.x, user_clicked_screen.y) == true && inter_to_POI == true) {
+            inter_to_POI = false;
+            help_pressed = false;
+        } else if (changeToPOI_text.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            disappear_POI = true;
+            inPOI = true;
+            inS1 = false;
+            inS2 = false;
+            help_pressed = false;
+        } else if (rightSearchBar.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            inS1 = false;
+            inS2 = true;
+            disappear_text_two = true;
+            searIconClick = false;
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if (searchIcon.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            std::cout << "search icon" << std::endl;
+            searIconClick = true;
+            interIconClick = false;
+            disappear_text_one = true;
+            disappear_text_two = true;
+            highlight_street_intersections();
+            searIconClick = false;
+            help_pressed = false;
+
+        } else if (findPath.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            if (foundInterID.POI.empty() == false) {
+                std::cout << "inter_to_POI highlight" << std::endl;
+                drawHighlight_POI_path();
+            } else {
+                drawHightlightPath(foundInterID);
+                for_highlight_ZOOM();
+            }
+            details_opened = true;
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if ((questionMark.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && !help_pressed) {
+            std::cout << "questionMark" << std::endl;
+            help_pressed = true;
+            layer_opened = false;
+            changeMap_opened = false;
+        } else if ((helpTab1.intersects(user_clicked_screen.x, user_clicked_screen.y)) && help_pressed) {
+            std::cout << "tab1" << std::endl;
+            help_pressed = true;
+            helpTab1_pressed = true;
+            helpTab2_pressed = false;
+            helpTab3_pressed = false;
+        } else if ((helpTab2.intersects(user_clicked_screen.x, user_clicked_screen.y)) && help_pressed) {
+            std::cout << "tab2" << std::endl;
+            help_pressed = true;
+            helpTab1_pressed = false;
+            helpTab2_pressed = true;
+            helpTab3_pressed = false;
+        } else if ((helpTab3.intersects(user_clicked_screen.x, user_clicked_screen.y)) && help_pressed) {
+            std::cout << "tab3" << std::endl;
+            help_pressed = true;
+            helpTab1_pressed = false;
+            helpTab2_pressed = false;
+            helpTab3_pressed = true;
+        } else if ((helpScreen.intersects(user_clicked_screen.x, user_clicked_screen.y)) && help_pressed) {
+            help_pressed = true;
+        } else if (zoomInButton.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            if (!inputString_s1.empty()) disappear_text_one = true;
+            if (!inputString_s2.empty()) disappear_text_two = true;
+            zoom_in(*drawscreen);
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if (zoomOutButton.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            if (!inputString_s1.empty()) disappear_text_one = true;
+            if (!inputString_s2.empty()) disappear_text_two = true;
+            zoom_out(*drawscreen);
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if (listInter.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+            if (!inputString_s1.empty()) disappear_text_one = true;
+            if (!inputString_s2.empty()) disappear_text_two = true;
+            if (interIconClick == true) interIconClick = false;
+            else interIconClick = true;
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if ((layerTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && !layer_opened) {
+            std::cout << "layer" << std::endl;
+            layer_opened = true;
+            changeMap_opened = false;
+        } else if ((changeMapTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && !changeMap_opened) {
+            changeMap_opened = true;
+            layer_opened = false;
+            help_pressed = false;
+            std::cout << "change" << std::endl;
+        } else if ((detailsTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && !details_opened) {
+            details_opened = true;
+            layer_opened = false;
+            changeMap_opened = false;
+            std::cout << "details" << std::endl;
+        } else if ((opened_layerTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && layer_opened) {
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else if (changeMap_opened && (wholeScreen.intersects(user_clicked_screen.x, user_clicked_screen.y) == true)) {
+            if ((opened_changeMapTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true)) {
+                layer_opened = false;
+                changeMap_opened = false;
+                help_pressed = false;
+            } else {
+                for (int i = 0; i < 19; i++) {
+                    if (map_icon_boundaries[i].intersects(user_clicked_screen.x, user_clicked_screen.y) == true) {
+                        changeMap_opened = false;
+                        help_pressed = false;
+                        details_opened = false;
+                        int stringSize = mapNames[i].size() - 4;
+                        std::string name = mapNames[i];
+                        name = name.erase(stringSize, 4);
+                        change_map(name);
+                    }
+                }
+            }
+        } else if ((opened_detailsTab.intersects(user_clicked_screen.x, user_clicked_screen.y) == true) && details_opened) {
+            details_opened = false;
+            userTypeChangeP = false;
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+        } else {
+            // when clicked on map, all texts in information area will be erased
+            // set_keypress_input(false);
+            std::cout << "else" << std::endl;
+            draw_inter_streets = false;
+            searIconClick = false;
+            layer_opened = false;
+            changeMap_opened = false;
+            help_pressed = false;
+            LatLon newpoint(y_to_lat(y), x_to_lon(x));
+            foundInterID.reset();
+            checkClickInter(newpoint);
+
+        }
+    }
+    drawscreen();
+}
+
+void checkClickInter(LatLon& newPoint) {
+    inter_id = find_closest_intersection(newPoint);
+    double distance = find_distance_between_two_points(newPoint, (mymap->intersectionUOM[inter_id]).intersectionPosition1);
+    std::cout << "distance" << distance << std::endl;
+    if (distance <= 10) {
+        std::cout << "Clicked on intersection" << std::endl;
+        click_screen = coordinate_convert_inter(inter_id);
+        if (clickTwoInter.interOne == 0) { //empty
+            clickTwoInter.interOne = inter_id;
+            clickTwoInter.interOneW = get_world_point(inter_id);
+            Zoom_in_area();
+            click_screen = coordinate_convert_inter(inter_id);
+        } else {
+            if (clickTwoInter.interTwo == 0) { // second is empty, already have one intersection
+                clickTwoInter.interTwo = inter_id;
+                clickTwoInter.interTwoW = get_world_point(inter_id);
+                clickTwoInter.twoInput = true;
+                details_opened = true;
+                drawHightlightPath(clickTwoInter);
+            } else {
+                std::cout << "kkkkkk" << std::endl;
+                clickTwoInter.reset();
+                foundPath.clear();
+                //newPathList.clear();
+                highlightColor = false;
+                clickTwoInter.interOne = inter_id;
+                clickTwoInter.interOneW = get_world_point(inter_id);
+                Zoom_in_area();
+                click_screen = coordinate_convert_inter(inter_id);
+            }
+        }
+
+    } else {
+        std::cout << "Wrong position" << std::endl;
+    }
+}
+
+void rightLeft() {
+    //cross product of two vector: >0 is right, <0 is left
+    //vector of all ss first, convert into a new vector that contains a vector this ss,
+    //do cross product
+
+}
+
+void computeVectorPath(std::vector<unsigned>& inputIDs) {
+    std::cout << "computeVectorPath" << std::endl;
+    std::vector<float> position;
+    twoSS tempTwoSS;
+    for (int i = 0; i < inputIDs.size(); i++) {
+        //  std::cout << "HERE 1" << std::endl;
+        if (inputIDs.size() == 1) {
+            std::cout << "Only one SS" << std::endl;
+        } else {
+            if (i + 1 < inputIDs.size()) {
+                if ((mymap->streetSegmentUOM[inputIDs[i]]).streetID != (mymap->streetSegmentUOM[inputIDs[i + 1]]).streetID) {
+                    std::cout << "inputIDs.size() = " << inputIDs.size() << std::endl;
+                    unsigned fromID_before = (mymap->streetSegmentUOM[inputIDs[i]]).from;
+                    unsigned toID_before = (mymap->streetSegmentUOM[inputIDs[i]]).to;
+                    unsigned fromID_after = (mymap->streetSegmentUOM[inputIDs[i + 1]]).from;
+                    unsigned toID_after = (mymap->streetSegmentUOM[inputIDs[i + 1]]).to;
+                    t_point from_T = coordinate_convert_inter(fromID_before);
+                    t_point to_T = coordinate_convert_inter(toID_before);
+                    tempTwoSS.before.x = to_T.x - from_T.x;
+                    tempTwoSS.before.y = to_T.y - from_T.y;
+                    t_point from_T_after = coordinate_convert_inter(fromID_after);
+                    t_point to_T_after = coordinate_convert_inter(toID_after);
+                    tempTwoSS.after.x = to_T_after.x - from_T_after.x;
+                    tempTwoSS.after.y = to_T_after.y - from_T_after.y;
+                    std::cout << "HERE 3" << std::endl;
+                    vectorP tempP = std::make_pair(tempTwoSS, inputIDs[i]);
+                    std::cout << "HERE 5" << std::endl;
+                    newPathList.push_back(tempP);
+                    unsigned streetID_temp = (mymap->streetSegmentUOM[newPathList[0].second]).streetID;
+                    std::string streetName_temp = mymap->streeNAME[streetID_temp];
+                    std::cout << "streetName 7777 === " << streetName_temp << std::endl;
+
+                } else {
+                    //std::cout << "Go ahead" << std::endl;
+                }
+            } else break;
+        }
+
+    }
+
+    std::cout << "computeVectorPath ----END" << std::endl;
+    drawDirection();
+}
+
+void drawDirection() {
+    //std::reverse(newPathList.begin(), newPathList.end());
+    if (newPathList.size() > 0) {
+        for (int i = 0; i < newPathList.size(); i++) {
+            unsigned streetID_temp = (mymap->streetSegmentUOM[newPathList[0].second]).streetID;
+            std::string streetName_temp = mymap->streeNAME[streetID_temp];
+            // std::cout << "streetName 99 === " << streetName_temp << std::endl;
+            twoSS calPoint = newPathList[i].first;
+            //     std::cout << "calPoint.before.x*calPoint.after.y = " << calPoint.before.x * calPoint.after.y << std::endl;
+            //  std::cout << "calPoint.before.x*calPoint.after.y = " << calPoint.before.x * calPoint.after.y << std::endl;
+            float crossProduct = calPoint.before.x * calPoint.after.y - calPoint.before.y * calPoint.after.x;
+            //  std::cout << "crossProduct = " << crossProduct << std::endl;
+            // std::cout << "HERE 3" << std::endl;
+            if (crossProduct > 0) {
+                // std::cout << "right " << std::endl;
+                newPathList[i].first.direction = "Right";
+            } else {
+                //std::cout << "left" << std::endl;
+                newPathList[i].first.direction = "Left";
+            }
+        }
+        //drawDetails();
+    }
+}
+
+void drawDetails() {
+    //title
+    // std::cout << "88888" << std::endl;
+    setcolor(WHITE);
+    drawtext(opened_detailsTab.right() + 100, bottom_l_y * 0.99 - png_size * 5.4286 + 10, "Driving Direction : ");
+
+    // std::cout << "newPathList.size()!" << newPathList.size() << std::endl;
+    // unsigned streetID_temp = (mymap->streetSegmentUOM[newPathList[0].second]).streetID;
+    // std::string streetName_temp = mymap->streeNAME[streetID_temp];
+    //std::cout << "streetName 888 === " << std::endl;
+    if (abs(newPathList.size()) <= 8 && abs(newPathList.size()) > 0) {
+        std::cout << "Not Change Window" << std::endl;
+        printINFO(newPathList);
+    } else {
+        std::cout << "Change Window" << std::endl;
+        userChangePage = true;
+        int num_of_vec = newPathList.size() / 8;
+        int beginI = 0;
+        for (int i = beginI; i < num_of_vec; i++) {
+            std::cout << "1" << std::endl;
+            std::vector<vectorP> temp(newPathList.begin() + i * 7, newPathList.begin()+(i + 1)*6);
+            // std::cout << "size of std::vector<vectorP> temp" << temp.size() <<std::endl;
+            outInfo.push_back(temp);
+            beginI = i + 1;
+        }
+        int modu = newPathList.size() % 8;
+        if (modu != 0) {
+            // std::cout << "2    modu = " << modu <<std::endl;
+            std::vector<vectorP> temp(newPathList.end() - 1 - modu, newPathList.end());
+            //  std::cout << "size of std::vector<vectorP> temp" << temp.size() <<std::endl;
+            outInfo.push_back(temp);
+        }
+        if (userTypeChangeP == false) {
+            std::cout << "3" << std::endl;
+            printINFO(outInfo[0]);
+            curretWindow = 0;
+        } else {
+            std::cout << "4" << std::endl;
+            std::cout << "Set curretWindow ---" << curretWindow << std::endl;
+            printINFO(outInfo[curretWindow]);
+        }
+
+    }
+
+}
+
+void printINFO(std::vector<vectorP> &trueList) {
+    std::cout << "printINFO" << std::endl;
+    int outputlint = 0;
+    int oldI = 0;
+    float xc = opened_detailsTab.right() + (top_r_x - opened_detailsTab.right()) / 2;
+    float yc = bottom_l_y * 0.99 - png_size * 5.4286 + 10;
+    for (int j = 0; j < trueList.size(); j++) {
+        //  std::cout << "88888" << std::endl;
+        unsigned ssID = trueList[j].second;
+        for (int i = oldI; i < foundPath.size(); i++) {
+            if (foundPath[i] == ssID) {
+                //std::cout << "!!!!!!" << std::endl;
+                // std::cout << "draw Direction " << trueList[j].first.direction << std::endl;
+                unsigned streetID;
+                if (i == 0)streetID = (mymap->streetSegmentUOM[foundPath[i]]).streetID;
+                else streetID = (mymap->streetSegmentUOM[foundPath[i - 1]]).streetID;
+                std::string streetName = mymap->streeNAME[streetID];
+                //std::cout << "streetName === " << streetName << std::endl;
+                drawtext(opened_detailsTab.right() + 80, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, "Go straight on : ");
+                drawtext(opened_detailsTab.right() + 250, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, streetName);
+                setcolor(WHITE);
+                // std::cout << "outputlint === " << outputlint << std::endl;
+                drawtext(opened_detailsTab.right() + 400, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, "Turn");
+                drawtext(opened_detailsTab.right() + 450, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, trueList[j].first.direction);
+                outputlint++;
+                oldI = i;
+                break;
+            }
+        }
+    }
+    std::cout << "4" << std::endl;
+    unsigned streetID = (mymap->streetSegmentUOM[foundPath[foundPath.size() - 1]]).streetID;
+    std::string streetName = mymap->streeNAME[streetID];
+    drawtext(opened_detailsTab.right() + 80, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, "Go straight on : ");
+    drawtext(opened_detailsTab.right() + 250, bottom_l_y * 0.99 - png_size * 5.4286 + 30 + outputlint * 20, streetName);
+
+}
+
+void drawChangeMap() {
+
+}
+
+void drawLayers() {
+
+}
+
+void drawHightlightPath(twoInterID& interstruct) {
+    //two name->hightlight two end points -> hightlight path;
+    foundPath = find_path_between_intersections(interstruct.interOne, interstruct.interTwo, 15);
+    computeVectorPath(foundPath);
+    highlightColor = true;
+    /* for (std::vector<unsigned>::iterator it = foundPath.begin(); it != foundPath.end(); it++) {
+        unsigned temp = *it;
+        std::cout << "foundPath =" << temp << std::endl;
+    }*/
+
+}
+
+void drawHighlight_POI_path() {
+    //if (foundInterID.which_is_POI == 1){
+    // std::cout <<"First is POI" <<std::endl;  
+    // std::cout << "foundInterID.interOne111111111 = " <<foundInterID.interOne<<std::endl;
+    // std::cout << "foundInterID.POI " <<foundInterID.POI<<std::endl;
+    foundPath = find_path_to_point_of_interest(foundInterID.interOne, "Subway", 15);
+    computeVectorPath(foundPath);
+    // }
+    std::cout << "foundPath " << foundPath.size() << std::endl;
+    if (foundPath.size() == 0) {
+    } else {
+        highlightColor = true;
+        /*    for (std::vector<unsigned>::iterator it = foundPath.begin(); it != foundPath.end(); it++) {
+        unsigned temp = *it;
+        std::cout << "foundPath =" << temp << std::endl;
+       }*/
+
+    }
+}
+
+
+//The function print information of the nearest intersection to where user clicked
+
+void hightlight_intersection(unsigned inter_id_clicked) {
+    setcolor(BLACK);
+    std::string inter_name = (mymap->intersectionUOM[inter_id_clicked]).intersectionName1;
+    /*setfontsize(12);
+    drawtext(length_of_bar * 0.45, bar_t_r_y * 1.03, "Intersection Information:");
+    drawtext(length_of_bar * 0.455, bar_t_r_y * 1.054, "Clicked Intersection name :");
+    drawtext(length_of_bar * 0.65, bar_t_r_y * 1.054, inter_name);
+    drawtext(length_of_bar * 0.455, bar_t_r_y * 1.075, "Clicked Intersection Index : ");
+    std::string temp_int = std::to_string(inter_id_clicked);
+    drawtext(length_of_bar * 0.65, bar_t_r_y * 1.075, temp_int);
+    drawtext(length_of_bar * 0.455, bar_t_r_y * 1.096, "Clicked Intersection Position(lon,lat): ");
+    std::string temp_pos_1 = std::to_string((mymap->intersectionUOM[inter_id_clicked]).intersectionPosition1.lon());
+    std::string temp_pos_2 = std::to_string((mymap->intersectionUOM[inter_id_clicked]).intersectionPosition1.lat());
+    std::string result = "( " + temp_pos_1 + "," + temp_pos_2 + " )";
+    drawtext(length_of_bar * 0.65, bar_t_r_y * 1.096, result);*/
+}
+
+
+
+// The function is called when user type any bottom at keyboard
+
+void act_on_keyboard(char c, int keysym) {
+    //inS1 == true: The clicked position located in search box for Street One
+    //inS2 == true: The clicked position located in search box for Street Two
+    //inMapChange == true: The clicked position located in search box for Change Map
+    only_draw_string = true;
+    userTypeChangeP = false;
+#ifdef X11
+
+    switch (keysym) {
+        case XK_Return:
+            //user finish input
+            if (!inputString_s1.empty() && inputString_s2.empty()) {
+                //user only enter one street name
+                draw_inter_streets = false;
+                user_enter_string_twice = false;
+            } else if (!inputString_s1.empty() && !inputString_s2.empty()) {
+                //user enter two street names
+                // begin to print information and highlight intersections
+                draw_inter_streets = true;
+                user_enter_string_twice = true;
+            }
+            break;
+        case XK_BackSpace:
+            //user want to delete the character from input string
+            special = true;
+            if (inS1) {
+                if (inputString_s1.size() > 0) {
+                    inputString_s1.pop_back(); //(inputString_s1.begin() + (inputString_s1.size() - 1));
+                    std::string temp(inputString_s1.begin(), inputString_s1.end());
+                    outputString_s1 = temp;
+
+                }
+            } else if (inS2) {
+                if (outputString_s2.size() > 0) {
+                    inputString_s2.pop_back(); //erase(inputString_s2.begin() + (inputString_s2.size() - 1));
+                    std::string temp(inputString_s2.begin(), inputString_s2.end());
+                    outputString_s2 = temp;
+                }
+            } else if (inPOI) {
+                if (outputString_POI.size() > 0) {
+                    inputString_POI.pop_back(); //erase(inputString_s2.begin() + (inputString_s2.size() - 1));
+                    std::string temp(inputString_POI.begin(), inputString_POI.end());
+                    outputString_POI = temp;
+                    // std::cout <<"outputString_POI = " <<outputString_POI <<std::endl;
+                }
+            }
+            break;
+        case XK_Tab:
+            if (inS1 == true) {
+                inS1 = false;
+                inS2 = true;
+                if (!inputString_s1.empty()) disappear_text_one = true;
+                else disappear_text_one = false;
+                disappear_text_two = true;
+            }
+            break;
+        case XK_Right:
+            std::cout << "XK_Right" << std::endl;
+            if (details_opened == true) {
+                userTypeChangeP = true;
+                std::cout << "Set true" << std::endl;
+                if (curretWindow < outInfo.size()) curretWindow++;
+                std::cout << "Set curretWindow" << curretWindow << std::endl;
+            } else userTypeChangeP = false;
+            break;
+        case XK_Left:
+            std::cout << "XK_Left" << std::endl;
+            if (details_opened == true) {
+                std::cout << "Set true" << std::endl;
+                userTypeChangeP = true;
+                if (curretWindow > 0) curretWindow--;
+            } else userTypeChangeP = false;
+            break;
+
+        default: special = false;
+    }
+
+#endif
+
+    if (c != NULL && !special) {
+        user_click_map = false;
+        if (inS1) {
+            inputString_s1.push_back(c);
+            std::string temp(inputString_s1.begin(), inputString_s1.end());
+            outputString_s1 = temp;
+
+        } else if (inS2) {
+            inputString_s2.push_back(c);
+            std::string temp(inputString_s2.begin(), inputString_s2.end());
+            outputString_s2 = temp;
+
+        } else if (inPOI) {
+            inputString_POI.push_back(c);
+            std::string temp(inputString_POI.begin(), inputString_POI.end());
+            outputString_POI = temp;
+        }
+    }
+    drawscreen();
+}
+
+//highlight intersection of two intersected street and print all informations
+
+/*void draw_highlight_intersections() {
+    if (inter_id_twoStreet.size() == 0 && draw_enable == false) {
+        std::cout << "Not Found" << std::endl;
+    } else {
+        std::cout << "Intersections Information:" << std::endl;
+        for (unsigned i = 0; i < inter_id_twoStreet.size(); i++) {
+            //get information and print them
+            setcolor(BLACK);
+            unsigned intersection_id = inter_id_twoStreet[i];
+           
+
+            // get position
+            set_coordinate_system(GL_WORLD);
+            inter_point_screen = coordinate_convert_inter(intersection_id);
+            set_coordinate_system(GL_SCREEN);
+            //highlight the point
+            setcolor(t_color(243, 113, 34));
+            fillarc(inter_point_screen.x, inter_point_screen.y, 10, 90, 360);
+        }
+
+    }
+
+
+}*/
+
+
+//This function is called when user press the "Find" button
+
+void highlight_street_intersections() {
+    std::cout << "highlight_street_intersections" << std::endl;
+    if ((inputString_s1.size() == 0 || inputString_s2.size() == 0) && inputString_POI.size() == 0) {
+        //user provide too few arguments
+        std::cout << "Invalid argument" << std::endl;
+    } else {
+
+        if (inter_to_POI == true) {
+            foundInterID.POI = outputString_POI;
+            if (foundInterID.interOne == 0) foundInterID.which_is_POI = 1; //user enter POI earlier than intersection
+            else foundInterID.which_is_POI = 2;
+        } else {
+            draw_inter_streets = true;
+            std::string street1(inputString_s1.begin(), inputString_s1.end());
+            std::string street2(inputString_s2.begin(), inputString_s2.end());
+            inter_id_twoStreet = find_intersection_ids_from_street_names(street1, street2);
+            if (inter_id_twoStreet.size() == 0) {
+                std::cout << "Not Found" << std::endl;
+            } else {
+                if (foundInterID.twoInput == false) {
+                    //std::cout <<"//interOne is empty " <<std::endl;
+                    if (foundInterID.interOne == 0) { //interOne is empty  
+                        //   std::cout << "1111" <<std::endl;
+                        foundInterID.interOne = inter_id_twoStreet[0];
+                        foundInterID.interOneW = get_world_point(inter_id_twoStreet[0]);
+                    } else { //interOne is not empty
+                        // std::cout <<"//interOne is not empty " <<std::endl;
+                        if (foundInterID.POI.empty() == true) { //user didn't input POI
+                            //     std::cout << "2222" <<std::endl;
+                            foundInterID.interTwo = inter_id_twoStreet[0];
+                            foundInterID.interTwoW = get_world_point(inter_id_twoStreet[0]);
+                            foundInterID.twoInput = true;
+                        } else {// have one POI and intersection already
+                            foundInterID.reset();
+                            inputIntersections.clear();
+                            foundInterID.interOne = inter_id_twoStreet[0];
+                            foundInterID.interOneW = get_world_point(inter_id_twoStreet[0]);
+                        }
+                    }
+                } else {
+                    std::cout << "Clear" << std::endl;
+                    foundInterID.reset();
+                    inputIntersections.clear();
+                    foundPath.clear();
+                    newPathList.clear();
+                    highlightColor = false;
+                    foundInterID.interOne = inter_id_twoStreet[0];
+                    foundInterID.interOneW = get_world_point(inter_id_twoStreet[0]);
+                }
+            }
+            if (inter_id_twoStreet.size() != 0) {
+                std::string inter_name = (mymap->intersectionUOM[inter_id_twoStreet[0]]).intersectionName1;
+                if (inputIntersections.size() != 0) {
+                    if (inputIntersections[inputIntersections.size() - 1] != inter_name)inputIntersections.push_back(inter_name);
+                } else inputIntersections.push_back(inter_name);
+            }
+        }
+    }
+    //drawscreen();
+}
+
+void checkBarOpen() {
+    if (searIconClick == true || interIconClick == false) {
+        //user enter intersections without close the pop-up window
+        int line_height = 15;
+        int line_width = 400;
+
+        for (int i = 0; i < inputIntersections.size(); i++) {
+            int left_buttom_y = listInter.bottom() + (1 + i) * line_height;
+            setcolor(WHITE);
+            fillrect(listInter.left(), left_buttom_y, listInter.left() + line_width, left_buttom_y - line_height);
+            setcolor(BLACK);
+            setfontsize(12);
+            drawtext(listInter.left() + line_width / 2, left_buttom_y - line_height / 2, inputIntersections[i]);
+        }
+    }
+}
+
+#endif /* INFORMATION_BAR_H */
+

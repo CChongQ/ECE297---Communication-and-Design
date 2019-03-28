@@ -1,0 +1,35 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   Nodes.h
+ * Author: qinzhen4
+ *
+ * Created on March 16, 2018, 10:39 PM
+ */
+
+#ifndef NODES_H
+#define NODES_H
+using namespace std;
+#include <iostream>
+#include <sstream>
+#include<math.h>
+#include <vector>
+class Nodes {
+public:
+    Nodes();
+    Nodes(const Nodes& orig);
+    unsigned path_to_the_point;
+    unsigned parents;
+    double travel_time_from_start_points;
+    bool visited;
+    
+    virtual ~Nodes();
+private:
+
+};
+
+#endif /* NODES_H */

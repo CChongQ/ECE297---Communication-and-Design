@@ -1,0 +1,42 @@
+id: 0-2.0.r2/0
+type: dir
+count: 0
+cpath: /Hello
+copyroot: 0 /
+
+PLAIN
+K 5
+Hello
+V 14
+dir 0-2.0.r2/0
+K 8
+Makefile
+V 18
+file 0-1.0.r1/7558
+K 13
+libmilestone0
+V 17
+dir 2-1.0.r1/9881
+K 4
+main
+V 18
+dir e-1.0.r1/10440
+K 9
+nbproject
+V 18
+dir j-1.0.r1/11115
+END
+ENDREP
+id: 0.0.r2/260
+type: dir
+pred: 0.0.r1/11562
+count: 2
+text: 2 63 184 184 e91215b2c08d7b6aeb69f749f06b129f
+props: 1 11478 71 59 0ceb549f0480fb80534b710b263e0331
+cpath: /
+copyroot: 0 /
+
+_0.0.t1-1 add-dir false false /Hello
+
+
+260 443

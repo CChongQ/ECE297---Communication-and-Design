@@ -1,0 +1,80 @@
+#include "newmap.h"
+#include "m1.h"
+#include "m2.h"
+#include "m3.h"
+#include "m4.h"
+#include "StreetsDatabaseAPI.h"
+#include "OSMDatabaseAPI.h" 
+#include "X11/keysymdef.h"
+#include <map>
+#include <tuple>
+#include <iostream>
+#include <algorithm>
+#include <math.h>
+#include <unordered_map>
+#include <vector>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/register/point.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <limits>
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+#include <string>
+#include <set>
+#include <cassert>
+#include "Intersection_detail.h"
+std::vector<unsigned> traveling_courier(const std::vector<DeliveryInfo>& deliveries, 
+                                        const std::vector<unsigned>& depots, 
+                                        const float turn_penalty){
+    
+    std::vector<unsigned> mypath;
+    unsigned first_point = depots[0];
+    bool path_valid = true;
+    for(int i = 0; i < deliveries.size(); i++){
+        std::vector<unsigned> temp_path;
+        
+        temp_path = find_path_between_intersections(first_point, deliveries[i].pickUp, turn_penalty);
+        
+        if(temp_path.size() == 0){
+            path_valid = false;
+            break;
+        }
+        
+        mypath.insert(mypath.end(),temp_path.begin(), temp_path.begin());
+        first_point = deliveries[i].pickUp;
+        
+    }
+    
+    for(int j = 0; j < deliveries.size(); j++){
+        std::vector<unsigned> temp_path2;
+        
+        temp_path2 = find_path_between_intersections(first_point, deliveries[j].dropOff, turn_penalty);
+        
+        if(temp_path2.size() == 0){
+            path_valid = false;
+            break;
+        }
+        
+        mypath.insert(mypath.end(),temp_path2.begin(), temp_path2.begin());
+        
+        
+        first_point = deliveries[j].dropOff;
+    }
+    
+    std::vector<unsigned> empty_path;
+    empty_path.resize(0);
+    
+    if(!path_valid){
+        return empty_path;
+    }
+    
+    std::vector<unsigned> temp_path3;
+        
+    temp_path3 = find_path_between_intersections(first_point, depots[0], turn_penalty);
+    mypath.insert(mypath.end(),temp_path3.begin(), temp_path3.begin());
+    
+    return mypath;
+    
+    
+}
