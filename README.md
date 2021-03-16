@@ -1,7 +1,7 @@
 # Communication and Design - Interactive Travel Map
 Designed and implemented a large offline map  in a team using C++
 
-# Project Details
+## Project Details
 - Map Funtion:
    - Find shortest path between two locations
     - Location type:
