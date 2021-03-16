@@ -1,5 +1,6 @@
-# ECE297---Communication-and-Design
-Designed and implemented a large software project in a team using C++
+# Communication and Design - Interactive Travel Map
+Designed and implemented a large offline map  in a team using C++
+
 # Project Details
 - Map Funtion:
    - Find shortest path between two locations
@@ -8,6 +9,11 @@ Designed and implemented a large software project in a team using C++
       - Between two intersections
   - Provide Driving Directions
   - Provide longitude and longitude of a location
-- Contributer:
-  - Zhen Qin, University of Toronto (Team Member)
-  - Sooyeon Cho, University of Toronto (Team Member)
+
+## Contributor
+
+Chenhong Qiu,  University of Toronto
+
+Sooyeon Cho, University of Toronto
+
+Zhen Qin, University of Toronto
